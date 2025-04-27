@@ -22,7 +22,6 @@ from models.discrete_unet import DiscreteUNetModel
 from models.ema import EMA
 from torch.nn.modules import Module
 from torch.nn.parallel import DistributedDataParallel
-from torchmetrics.image.fid import FrechetInceptionDistance
 from torchvision.utils import save_image
 from training import distributed_mode
 from training.edm_time_discretization import get_time_discretization
@@ -39,20 +38,10 @@ class CFGScaledModel(ModelWrapper):
         super().__init__(model)
         self.nfe_counter = 0
 
-    def forward(
-        self, x: torch.Tensor, t: torch.Tensor, cfg_scale: float, label: torch.Tensor
-    ):
-        module = (
-            self.model.module
-            if isinstance(self.model, DistributedDataParallel)
-            else self.model
-        )
-        is_discrete = isinstance(module, DiscreteUNetModel) or (
-            isinstance(module, EMA) and isinstance(module.model, DiscreteUNetModel)
-        )
-        assert cfg_scale == 0.0 or not is_discrete, (
-            f"Cfg scaling does not work for the logit outputs of discrete models. Got cfg weight={cfg_scale} and model {type(self.model)}."
-        )
+    def forward(self, x: torch.Tensor, t: torch.Tensor, cfg_scale: float, label: torch.Tensor):
+        module = self.model.module if isinstance(self.model, DistributedDataParallel) else self.model
+        is_discrete = isinstance(module, DiscreteUNetModel) or (isinstance(module, EMA) and isinstance(module.model, DiscreteUNetModel))
+        assert cfg_scale == 0.0 or not is_discrete, f"Cfg scaling does not work for the logit outputs of discrete models. Got cfg weight={cfg_scale} and model {type(self.model)}."
         t = torch.zeros(x.shape[0], device=x.device) + t
 
         if cfg_scale != 0.0:
@@ -121,10 +110,7 @@ def eval_model(
             cfg_scaled_model.reset_nfe_counter()
             if args.discrete_flow_matching:
                 # Discrete sampling
-                x_0 = (
-                    torch.zeros(samples.shape, dtype=torch.long, device=device)
-                    + MASK_TOKEN
-                )
+                x_0 = torch.zeros(samples.shape, dtype=torch.long, device=device) + MASK_TOKEN
                 if args.sym_func:
                     sym = lambda t: 12.0 * torch.pow(t, 2.0) * torch.pow(1.0 - t, 0.25)
                 else:
@@ -159,22 +145,16 @@ def eval_model(
                     return_intermediates=False,
                     atol=ode_opts["atol"] if "atol" in ode_opts else 1e-5,
                     rtol=ode_opts["rtol"] if "atol" in ode_opts else 1e-5,
-                    step_size=ode_opts["step_size"]
-                    if "step_size" in ode_opts
-                    else None,
+                    step_size=ode_opts["step_size"] if "step_size" in ode_opts else None,
                     label=labels,
                     cfg_scale=args.cfg_scale,
                 )
 
                 # Scaling to [0, 1] from [-1, 1]
-                synthetic_samples = torch.clamp(
-                    synthetic_samples * 0.5 + 0.5, min=0.0, max=1.0
-                )
+                synthetic_samples = torch.clamp(synthetic_samples * 0.5 + 0.5, min=0.0, max=1.0)
                 synthetic_samples = torch.floor(synthetic_samples * 255)
             synthetic_samples = synthetic_samples.to(torch.float32) / 255.0
-            logger.info(
-                f"{samples.shape[0]} samples generated in {cfg_scaled_model.get_nfe()} evaluations."
-            )
+            logger.info(f"{samples.shape[0]} samples generated in {cfg_scaled_model.get_nfe()} evaluations.")
             if num_synthetic + synthetic_samples.shape[0] > fid_samples:
                 synthetic_samples = synthetic_samples[: fid_samples - num_synthetic]
             fid_metric.update(synthetic_samples, real=False)
@@ -182,28 +162,16 @@ def eval_model(
             if not snapshots_saved and args.output_dir:
                 save_image(
                     synthetic_samples,
-                    fp=Path(args.output_dir)
-                    / "snapshots"
-                    / f"{epoch}_{data_iter_step}.png",
+                    fp=Path(args.output_dir) / "snapshots" / f"{epoch}_{data_iter_step}.png",
                 )
                 snapshots_saved = True
 
             if args.save_fid_samples and args.output_dir:
-                images_np = (
-                    (synthetic_samples * 255.0)
-                    .clip(0, 255)
-                    .to(torch.uint8)
-                    .permute(0, 2, 3, 1)
-                    .cpu()
-                    .numpy()
-                )
+                images_np = (synthetic_samples * 255.0).clip(0, 255).to(torch.uint8).permute(0, 2, 3, 1).cpu().numpy()
                 for batch_index, image_np in enumerate(images_np):
                     image_dir = Path(args.output_dir) / "fid_samples"
                     os.makedirs(image_dir, exist_ok=True)
-                    image_path = (
-                        image_dir
-                        / f"{distributed_mode.get_rank()}_{data_iter_step}_{batch_index}.png"
-                    )
+                    image_path = image_dir / f"{distributed_mode.get_rank()}_{data_iter_step}_{batch_index}.png"
                     PIL.Image.fromarray(image_np, "RGB").save(image_path)
 
         if not args.compute_fid:
@@ -213,9 +181,7 @@ def eval_model(
             # Sync fid metric to ensure that the processes dont deviate much.
             gc.collect()
             running_fid = fid_metric.compute()
-            logger.info(
-                f"Evaluating [{data_iter_step}/{len(data_loader)}] samples generated [{num_synthetic}/{fid_samples}] running fid {running_fid}"
-            )
+            logger.info(f"Evaluating [{data_iter_step}/{len(data_loader)}] samples generated [{num_synthetic}/{fid_samples}] running fid {running_fid}")
 
         if args.test_run:
             break

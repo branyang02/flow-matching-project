@@ -15,5 +15,4 @@ dependencies = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "F"]
-ignore = ["F401"]
+ignore = ["E731", "E501"]
