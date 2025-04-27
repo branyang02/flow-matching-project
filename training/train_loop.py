@@ -10,11 +10,12 @@ import math
 from typing import Iterable
 
 import torch
-from path import CondOTProbPath, MixtureDiscreteProbPath
-from path.scheduler import PolynomialConvexScheduler
-from models.ema import EMA
 from torch.nn.parallel import DistributedDataParallel
 from torchmetrics.aggregation import MeanMetric
+
+from models.ema import EMA
+from path import CondOTProbPath, MixtureDiscreteProbPath
+from path.scheduler import PolynomialConvexScheduler
 from training.grad_scaler import NativeScalerWithGradNormCount
 
 logger = logging.getLogger(__name__)

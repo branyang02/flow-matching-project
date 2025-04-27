@@ -7,8 +7,9 @@ import argparse
 import json
 import logging
 
-from models.model_configs import MODEL_CONFIGS
 from torchdiffeq._impl.odeint import SOLVERS
+
+from models.model_configs import MODEL_CONFIGS
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 
 class Solver(ABC, nn.Module):

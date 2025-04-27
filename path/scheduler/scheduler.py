@@ -6,11 +6,9 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-
 from typing import Union
 
 import torch
-
 from torch import Tensor
 
 

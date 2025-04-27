@@ -10,13 +10,12 @@ from typing import Callable, Optional, Union
 
 import torch
 from torch import Tensor
-
 from torch.nn import functional as F
 
 from path import MixtureDiscreteProbPath
-
 from solver.solver import Solver
-from utils import categorical, ModelWrapper
+from utils import ModelWrapper, categorical
+
 from .utils import get_nearest_times
 
 try:

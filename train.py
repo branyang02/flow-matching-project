@@ -14,22 +14,20 @@ import sys
 import time
 from pathlib import Path
 
+import certifi
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torchvision.datasets as datasets
+
 from models.model_configs import instantiate_model
 from train_arg_parser import get_args_parser
-
 from training import distributed_mode
 from training.data_transform import get_train_transform
 from training.eval_loop import eval_model
 from training.grad_scaler import NativeScalerWithGradNormCount as NativeScaler
 from training.load_and_save import load_model, save_model
 from training.train_loop import train_one_epoch
-
-import certifi
-
 
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 ssl._create_default_https_context = lambda: ssl_context

@@ -5,17 +5,14 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-
 from torch import Tensor
 from torch.func import jvp, vmap
 
 from path.path import ProbPath
-
 from path.path_sample import PathSample
 from path.scheduler import ConvexScheduler
 from utils import expand_tensor_like
-
-from utils.manifolds import geodesic, Manifold
+from utils.manifolds import Manifold, geodesic
 
 
 class GeodesicProbPath(ProbPath):

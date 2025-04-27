@@ -11,21 +11,21 @@ from pathlib import Path
 from typing import Iterable
 
 import PIL.Image
-
 import torch
+from torch.nn.modules import Module
+from torch.nn.parallel import DistributedDataParallel
+from torchvision.utils import save_image
+
+from models.discrete_unet import DiscreteUNetModel
+from models.ema import EMA
 from path import MixtureDiscreteProbPath
 from path.scheduler import PolynomialConvexScheduler
 from solver import MixtureDiscreteEulerSolver
 from solver.ode_solver import ODESolver
-from utils import ModelWrapper
-from models.discrete_unet import DiscreteUNetModel
-from models.ema import EMA
-from torch.nn.modules import Module
-from torch.nn.parallel import DistributedDataParallel
-from torchvision.utils import save_image
 from training import distributed_mode
 from training.edm_time_discretization import get_time_discretization
 from training.train_loop import MASK_TOKEN
+from utils import ModelWrapper
 from utils.fid_wrapper import FIDWrapper
 
 logger = logging.getLogger(__name__)

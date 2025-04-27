@@ -6,7 +6,7 @@
 
 from abc import ABC
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 
 class ModelWrapper(ABC, nn.Module):

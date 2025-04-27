@@ -11,7 +11,7 @@ from torch import Tensor
 from torchdiffeq import odeint
 
 from solver.solver import Solver
-from utils import gradient, ModelWrapper
+from utils import ModelWrapper, gradient
 
 
 class ODESolver(Solver):

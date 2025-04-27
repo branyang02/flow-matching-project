@@ -12,7 +12,7 @@ from torch import Tensor
 
 from solver.solver import Solver
 from utils import ModelWrapper
-from utils.manifolds import geodesic, Manifold
+from utils.manifolds import Manifold, geodesic
 
 try:
     from tqdm import tqdm
